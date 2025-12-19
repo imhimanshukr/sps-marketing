@@ -106,8 +106,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   // 📄 Custom pages
   pages: {
-    signIn: "/", // Login page
-    error: "/", // Error page
+    signIn: "/login", // Login page
+    error: "/login", // Error page
   },
 
   // ⏳ Session settings
