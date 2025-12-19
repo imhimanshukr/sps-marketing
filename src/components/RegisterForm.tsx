@@ -50,7 +50,7 @@ const RegisterForm = ({ nextStep }: IProp) => {
     }
 
     if (!password.trim()) {
-      newErrors.password = "Password is required";
+      newErrors.password = "Password is required.";
     } else if (password.length < 6) {
       newErrors.password = "Minimum 6 characters required";
     }
