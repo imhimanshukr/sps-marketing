@@ -8,6 +8,7 @@ import Google from "next-auth/providers/google";
 // NextAuth main config
 /* Authorize → JWT me data → Session me data → FE useSession() se access */
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   // 🔐 Login providers
   providers: [
     Credentials({

@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     const { vendorId, orderId } = await req.json();
 
-    const vendor = await Vendor.findById(vendorId).lean();
+    const vendor: any = await Vendor.findById(vendorId).lean();
     if (!vendor) {
       return NextResponse.json(
         { message: "Vendor not found" },
@@ -21,17 +21,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const order: any = vendor.orderList.find((o: any) => o.orderId === orderId);
+    const order: any = vendor.orderList.find(
+      (o: any) => o.orderId === orderId
+    );
     if (!order) {
-      return NextResponse.json({ message: "Order not found" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Order not found" },
+        { status: 404 }
+      );
     }
 
     /* ---------------- ROWS ---------------- */
     const rows = order.accordian
       .filter((r: any) => r.orderedProductName && r.orderQty)
-      .map((r: any, i: number) => [i + 1, r.orderedProductName, r.orderQty]);
+      .map((r: any, i: number) => [
+        i + 1,
+        r.orderedProductName,
+        r.orderQty,
+      ]);
 
-    /* ---------------- SIZE CALC (SAME AS VUE) ---------------- */
+    /* ---------------- PAGE HEIGHT ---------------- */
     const baseHeight = 45;
     const rowHeight = 7.5;
     const minHeight = 90;
@@ -45,7 +54,7 @@ export async function POST(req: NextRequest) {
     const pdf = new jsPDF({
       orientation: "portrait",
       unit: "mm",
-      format: [80, pageHeight], // 🔥 EXACT 80mm
+      format: [80, pageHeight], // 🔥 80mm thermal
     });
 
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -59,17 +68,20 @@ export async function POST(req: NextRequest) {
     ctx.drawImage(logoImg, 0, 0);
 
     const logoBase64 = canvas.toDataURL("image/png");
-
     pdf.addImage(logoBase64, "PNG", 4, 2, 16, 16);
 
     /* ---------------- HEADER ---------------- */
     const vendorName = (vendor.vendorName || "").toUpperCase();
 
     pdf.setFont("helvetica", "bold");
-    pdf.setTextColor(0, 0, 0);
     pdf.setFontSize(13);
+    pdf.setTextColor(0, 0, 0);
 
-    pdf.text(vendorName, (pageWidth - pdf.getTextWidth(vendorName)) / 2, 10);
+    pdf.text(
+      vendorName,
+      (pageWidth - pdf.getTextWidth(vendorName)) / 2,
+      10
+    );
 
     const mobile = "7979769612, 8863811908";
     const address = "Thathopur, Baheri";
@@ -78,19 +90,24 @@ export async function POST(req: NextRequest) {
     pdf.text(mobile, (pageWidth - pdf.getTextWidth(mobile)) / 2, 15);
     pdf.text(address, (pageWidth - pdf.getTextWidth(address)) / 2, 19);
 
-    /* ---------------- TABLE (15 ROW CHUNKS) ---------------- */
+    /* ---------------- TABLE ---------------- */
     const startY = 25;
     const CHUNK = 15;
 
     for (let i = 0; i < rows.length; i += CHUNK) {
       autoTable(pdf, {
-        startY: i === 0 ? startY : pdf.lastAutoTable.finalY + 6,
+        startY:
+          i === 0
+            ? startY
+            : ((pdf as any).lastAutoTable?.finalY || startY) + 6,
+
         head: [["S.No", "Product", "Quantity"]],
         body: rows.slice(i, i + CHUNK),
         theme: "grid",
         margin: { left: 4, right: 4 },
+
         styles: {
-          textColor: [0, 0, 0], // 🔥 DARK BLACK
+          textColor: [0, 0, 0],
           lineColor: [0, 0, 0],
           lineWidth: 0.3,
           font: "helvetica",
@@ -99,11 +116,13 @@ export async function POST(req: NextRequest) {
           valign: "middle",
           overflow: "linebreak",
         },
+
         headStyles: {
           fillColor: [255, 255, 255],
           textColor: [0, 0, 0],
           fontStyle: "bold",
         },
+
         columnStyles: {
           0: { cellWidth: 10 },
           1: { cellWidth: 38 },
@@ -134,6 +153,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("EPOS Print Error:", err);
-    return NextResponse.json({ message: "Print failed" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Print failed" },
+      { status: 500 }
+    );
   }
 }
