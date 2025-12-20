@@ -56,28 +56,19 @@ const handleLogin = async (e: React.FormEvent) => {
   try {
     setLoading(true);
 
-    const res = await signIn("credentials", {
+    await signIn("credentials", {
       email,
       password,
-      redirect: false,
+      redirect: true,
+      callbackUrl: "/",
     });
 
-    if (res?.error) {
-      setErrors({ server: "Invalid email or password" });
-    }
   } catch (err) {
     setErrors({ server: "Something went wrong"+ err });
   } finally {
     setLoading(false);
   }
 };
-
-useEffect(() => {
-  if (status === "authenticated") {
-    router.replace("/");
-  }
-}, [status, router]);
-
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6">
