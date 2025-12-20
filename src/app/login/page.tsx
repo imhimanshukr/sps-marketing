@@ -23,7 +23,7 @@ const LoginForm = () => {
   const [errors, setErrors] = useState<Errors>({});
   const [loading, setLoading] = useState(false);
 
-  const { data, status } = useSession();
+  const { data,  status } = useSession();
   console.log("session: ", data);
 
   /* Validation */
@@ -47,31 +47,34 @@ const LoginForm = () => {
   };
 
   /* Login user */
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setErrors({});
 
-    if (!validate()) return;
+  if (!validate()) return;
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-    } catch (err) {
-      setErrors({ server: "Something went wrong" + err });
-      setLoading(false);
-    }
-  };
+await signIn("credentials", {
+  email,
+  password,
+  redirect: false,
+});
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/");
-    }
-  }, [status, router]);
+  } catch (err) {
+    setErrors({ server: "Something went wrong"+ err });
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  if (status === "authenticated") {
+    router.replace("/");
+  }
+}, [status, router]);
+
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6">
