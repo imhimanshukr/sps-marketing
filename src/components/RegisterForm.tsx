@@ -14,6 +14,7 @@ import Image from "next/image";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { Button } from "@mui/material";
 
 type IProp = {
   nextStep: (step: number) => void;
@@ -234,15 +235,34 @@ const RegisterForm = ({ nextStep }: IProp) => {
           Continue with Google
         </button>
 
-        <p
-          className="mt-6 inline-block text-sm text-gray-500 cursor-pointer"
+        <Button
+          variant="text"
+          disableRipple
+          sx={{
+            mt: 2,
+            p: 0,
+            minWidth: "auto",
+            textTransform: "none",
+            fontSize: "0.875rem",
+            color: "#6b7280", // text-gray-500
+            "&:hover": {
+              backgroundColor: "transparent",
+            },
+          }}
           onClick={() => router.push("/login")}
         >
           Already have an account?{" "}
-          <span className="text-[#C62828] font-medium hover:underline cursor-pointer">
+          <span
+            style={{
+              color: "#C62828",
+              fontWeight: 500,
+              textDecoration: "underline",
+              marginLeft: 4,
+            }}
+          >
             Sign in
           </span>
-        </p>
+        </Button>
       </div>
     </div>
   );

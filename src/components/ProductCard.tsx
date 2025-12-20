@@ -4,6 +4,7 @@ import { Card, Box, Typography, Avatar, IconButton } from "@mui/material";
 import { motion } from "framer-motion";
 import { Package, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useRef } from "react";
 
 interface IProps {
   vendor: any;
@@ -12,11 +13,29 @@ interface IProps {
 
 export default function ProductCard({ vendor, onEditVendor }: IProps) {
   const router = useRouter();
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+
+  /* ---------------- LONG PRESS (MOBILE) ---------------- */
+  const handleTouchStart = () => {
+    longPressTimer.current = setTimeout(() => {
+      onEditVendor(vendor);
+    }, 500);
+  };
+
+  const clearLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
 
   return (
     <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }}>
       <Card
         onClick={() => router.push(`/?vendorId=${vendor._id}`)}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={clearLongPress}
+        onTouchMove={clearLongPress}
         sx={{
           height: { xs: 108, md: 140 },
           borderRadius: "16px",
@@ -29,6 +48,7 @@ export default function ProductCard({ vendor, onEditVendor }: IProps) {
           position: "relative",
         }}
       >
+        {/* 🔴 DESKTOP ONLY EDIT ICON */}
         <IconButton
           size="small"
           onClick={(e) => {
@@ -36,6 +56,7 @@ export default function ProductCard({ vendor, onEditVendor }: IProps) {
             onEditVendor(vendor);
           }}
           sx={{
+            display: { xs: "none", md: "flex" }, // ❌ mobile pe hide
             position: "absolute",
             bottom: 6,
             left: 6,
@@ -52,9 +73,10 @@ export default function ProductCard({ vendor, onEditVendor }: IProps) {
             },
           }}
         >
-          <Pencil size={14} />
+          <Pencil size={18} />
         </IconButton>
 
+        {/* ---------------- CONTENT ---------------- */}
         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Avatar
             src={vendor.logo}
@@ -90,6 +112,7 @@ export default function ProductCard({ vendor, onEditVendor }: IProps) {
               fontWeight: 800,
               textShadow: "0 0 6px rgba(255,255,255,0.25)",
               wordBreak: "break-word",
+              textTransform: "capitalize",
             }}
           >
             {vendor?.vendorName}

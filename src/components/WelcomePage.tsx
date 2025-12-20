@@ -2,13 +2,19 @@
 
 import { motion } from "framer-motion";
 import { ShoppingCart, Store, ArrowRight, Sparkles } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 type IProp = {
   nextStep: (step: number) => void;
 };
 
 const WelcomePage = ({ nextStep }: IProp) => {
+  const { status } = useSession();
+  const router = useRouter();
+  const isLoading = status === "loading";
+
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6">
       {/* Content */}
@@ -97,12 +103,19 @@ const WelcomePage = ({ nextStep }: IProp) => {
         <motion.button
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
+          disabled={isLoading}
           className="mt-12 w-full h-12 rounded-xl
                      bg-[#C62828] text-white
                      text-sm font-semibold
                      flex items-center justify-center gap-2
                     transition cursor-pointer"
-          onClick={() => nextStep(2)}
+          onClick={() => {
+            if (status === "authenticated") {
+              router.replace("/");
+            } else {
+              nextStep(2);
+            }
+          }}
         >
           Get Started
           <ArrowRight size={18} />

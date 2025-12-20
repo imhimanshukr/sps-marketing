@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
+import { Button } from "@mui/material";
 
 type Errors = {
   email?: string;
@@ -23,7 +24,7 @@ const LoginForm = () => {
   const [errors, setErrors] = useState<Errors>({});
   const [loading, setLoading] = useState(false);
 
-  const { data,  status } = useSession();
+  const { data, status } = useSession();
   console.log("session: ", data);
 
   /* Validation */
@@ -47,34 +48,32 @@ const LoginForm = () => {
   };
 
   /* Login user */
-const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setErrors({});
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
 
-  if (!validate()) return;
+    if (!validate()) return;
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-await signIn("credentials", {
-  email,
-  password,
-  redirect: false,
-});
+      await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+    } catch (err) {
+      setErrors({ server: "Something went wrong" + err });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  } catch (err) {
-    setErrors({ server: "Something went wrong"+ err });
-  } finally {
-    setLoading(false);
-  }
-};
-
-useEffect(() => {
-  if (status === "authenticated") {
-    router.replace("/");
-  }
-}, [status, router]);
-
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/");
+    }
+  }, [status, router]);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6">
@@ -199,15 +198,35 @@ useEffect(() => {
         </button>
 
         {/* Footer */}
-        <p
-          className="mt-6 inline-block text-sm text-gray-500 cursor-pointer"
+
+        <Button
+          variant="text"
+          disableRipple
+          sx={{
+            mt: 2,
+            p: 0,
+            minWidth: "auto",
+            textTransform: "none",
+            fontSize: "0.875rem",
+            color: "#6b7280", // text-gray-500
+            "&:hover": {
+              backgroundColor: "transparent",
+            },
+          }}
           onClick={() => router.push("/register")}
         >
           {"Don't have an account?"}{" "}
-          <span className="text-[#C62828] font-medium hover:underline cursor-pointer">
+          <span
+            style={{
+              color: "#C62828",
+              fontWeight: 500,
+              textDecoration: "underline",
+              marginLeft: 4,
+            }}
+          >
             Register
           </span>
-        </p>
+        </Button>
       </div>
     </div>
   );

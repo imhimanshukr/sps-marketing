@@ -261,7 +261,7 @@ export default function VendorList({
 
             {/* PRODUCT LIST */}
             {productList.length > 0 && (
-              <Stack direction="row" flexWrap="wrap" spacing={1} mt={2}>
+              <Stack direction="row" flexWrap="wrap" spacing={1} mt={1}>
                 {productList.map((p) => (
                   <Chip
                     key={p}
@@ -269,6 +269,7 @@ export default function VendorList({
                     onDelete={() => handleDeleteProduct(p)}
                     color="error"
                     variant="outlined"
+                    style={{ marginTop: 2 }}
                   />
                 ))}
               </Stack>

@@ -29,7 +29,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ vendor }, { status: 200 });
     }
 
-    // All vendors (ONLY LOGGED IN USER)
     const vendors = await Vendor.find({
       userId: session.user.id,
     }).sort({ createdAt: -1 });
