@@ -120,6 +120,7 @@ const OrderList = ({ vendor, goBack, refreshVendors }: any) => {
               textAlign: "center",
               lineHeight: 1.2,
               wordBreak: "break-word",
+              textTransform:'capitalize'
             }}
           >
             {vendor.vendorName}

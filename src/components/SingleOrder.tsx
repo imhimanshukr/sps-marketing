@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Accordion,
   AccordionSummary,
@@ -166,7 +166,7 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
     if (selectedRowIds.size > 0) {
       setActionType("copySelected");
     } else {
-      setActionType("copy"); // existing behaviour
+      setActionType("copy");
     }
 
     setTriggerData({
@@ -227,14 +227,27 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
 
     const blob = new Blob([res.data], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
-
-    // 👇 ye line IMPORTANT hai
     const pdfWindow = window.open(url, "_blank");
-
     if (!pdfWindow) {
       alert("Popup blocked");
     }
   };
+
+const formattedProductList = useMemo(
+  () =>
+    (vendor?.productList || []).map((str: string) =>
+      str
+        .split(" ")
+        .map(
+          (word) =>
+            word.charAt(0).toUpperCase() +
+            word.slice(1).toLowerCase()
+        )
+        .join(" ")
+    ),
+  [vendor?.productList]
+);
+
 
   useEffect(() => {
     if (!order?.accordian) return;
@@ -284,7 +297,11 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               {!isEditingName ? (
                 <>
-                  <Typography fontWeight={700} fontSize={{ xs: 14, sm: 16 }}>
+                  <Typography
+                    fontWeight={700}
+                    fontSize={{ xs: 14, sm: 16 }}
+                    sx={{ textTransform: "capitalize" }}
+                  >
                     {order?.orderListName || "Order Name"}
                   </Typography>
 
@@ -436,7 +453,7 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
                     <TableCell>
                       <Autocomplete
                         size="small"
-                        options={vendor?.productList || []}
+                        options={formattedProductList}
                         value={row.orderedProductName || null}
                         disabled={!row.isEditable}
                         onChange={(_, val) => {
@@ -451,9 +468,12 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
                             fullWidth
                             variant="outlined"
                             sx={{
+                              "& .MuiInputBase-input": {
+                                textTransform: "capitalize",
+                              },
                               "& .MuiInputBase-input.Mui-disabled": {
                                 WebkitTextFillColor: "#000",
-                                opacity: 0.8,
+                                opacity: 0.7,
                               },
                             }}
                           />

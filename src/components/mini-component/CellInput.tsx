@@ -38,7 +38,7 @@ const CellInput = memo(
         sx={{
           "& .MuiInputBase-input.Mui-disabled": {
             WebkitTextFillColor: "#000",
-            opacity: 0.8,
+            opacity: 0.7,
           },
         }}
       />
