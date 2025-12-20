@@ -25,12 +25,6 @@ const LoginForm = () => {
 
   const { data,  status } = useSession();
   console.log("session: ", data);
-const searchParams = useSearchParams();
-const rawCallbackUrl = searchParams.get("callbackUrl");
-
-const callbackUrl = rawCallbackUrl
-  ? new URL(rawCallbackUrl).pathname
-  : "/";
 
   /* Validation */
   const validate = () => {
@@ -78,11 +72,11 @@ const handleLogin = async (e: React.FormEvent) => {
   }
 };
 
-  useEffect(() => {
+useEffect(() => {
   if (status === "authenticated") {
-    router.replace(callbackUrl);
+    router.replace("/");
   }
-}, [status, callbackUrl, router]);
+}, [status, router]);
 
 
   return (
