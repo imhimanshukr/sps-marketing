@@ -21,7 +21,14 @@ const CellInput = memo(
 
     return (
       <TextField
+        type="text"
         size="small"
+        inputMode="numeric"
+        slotProps={{
+          htmlInput: {
+            pattern: "[0-9]*",
+          },
+        }}
         fullWidth
         value={localValue}
         disabled={disabled}
