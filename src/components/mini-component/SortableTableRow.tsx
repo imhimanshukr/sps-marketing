@@ -13,7 +13,7 @@ const SortableTableRow = ({
 }: {
   id: string;
   disabled?: boolean;
-  isMobile: boolean;
+  isMobile?: boolean;
   children: any;
 }) => {
   const {
