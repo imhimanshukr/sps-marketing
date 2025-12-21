@@ -142,7 +142,7 @@ const OrderList = ({ vendor, goBack, refreshVendors, fetching }: any) => {
         </Box>
 
         {loading || fetching ? (
-          <OrderListSkeleton count={3} />
+          <OrderListSkeleton accordions={3} />
         ) : vendor?.orderList?.length > 0 ? (
           vendor.orderList.map((order: any, index: number) => (
             <SingleOrderAccordion

@@ -6,12 +6,10 @@ import Navbar from "./Navbar";
 import VendorList from "./VendorList";
 import OrderList from "./OrderList";
 import axios from "axios";
-import Loader from "./mini-component/Loader";
 
 export default function VendorWrapper() {
   const searchParams = useSearchParams();
   const vendorIdFromUrl = searchParams.get("vendorId");
-
   const [vendors, setVendors] = useState([]);
   const [searchVal, setSearchVal] = useState("");
   const [fetching, setFetching] = useState(false);
