@@ -5,6 +5,12 @@ import { TableRow } from "@mui/material";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+type SortableRowRenderProps = {
+  setActivatorNodeRef: (element: HTMLElement | null) => void;
+  listeners?: Record<string, any>;
+  disabled?: boolean;
+};
+
 const SortableTableRow = ({
   id,
   disabled,
@@ -14,7 +20,9 @@ const SortableTableRow = ({
   id: string;
   disabled?: boolean;
   isMobile?: boolean;
-  children: any;
+  children:
+    | React.ReactNode
+    | ((props: SortableRowRenderProps) => React.ReactNode);
 }) => {
   const {
     setNodeRef,
@@ -42,7 +50,7 @@ const SortableTableRow = ({
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...(!isMobile && !disabled ? listeners : {})} // 👈 desktop row drag
+      {...(!isMobile && !disabled ? listeners : {})}
     >
       {typeof children === "function"
         ? children({ setActivatorNodeRef, listeners, disabled })

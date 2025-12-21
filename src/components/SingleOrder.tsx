@@ -22,7 +22,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import PrintIcon from "@mui/icons-material/Print";
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import DragHandleIcon from '@mui/icons-material/DragHandle';
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { SquarePen, SquarePlus, Trash, Trash2 } from "lucide-react";
 import axios from "axios";
@@ -756,7 +756,7 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
                                       bgcolor: "rgba(0,0,0,0.08)",
                                     }}
                                   >
-                                    <DragIndicatorIcon />
+                                    <DragHandleIcon />
                                   </IconButton>
                                 )}
                               </Box>
