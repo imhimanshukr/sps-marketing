@@ -8,7 +8,26 @@ export async function POST(req: NextRequest) {
 
     const { vendorId, orderId, row } = await req.json();
 
-    // ✅ STEP 1: Update current empty row → saved
+    const vendor = await Vendor.findOne({
+      _id: vendorId,
+      "orderList.orderId": orderId,
+    });
+
+    if (!vendor) {
+      return NextResponse.json({ message: "Vendor not found" }, { status: 404 });
+    }
+
+    const order = vendor.orderList.find(
+      (o: any) => String(o.orderId) === String(orderId)
+    );
+
+    if (!order) {
+      return NextResponse.json({ message: "Order not found" }, { status: 404 });
+    }
+
+    const nextSno = order.accordian.length + 1;
+
+    // 1️⃣ Update current editable row
     await Vendor.updateOne(
       {
         _id: vendorId,
@@ -30,12 +49,13 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // ✅ STEP 2: Push new empty row
-    const vendor = await Vendor.findOneAndUpdate(
+    // 2️⃣ Push new empty row WITH sno
+    await Vendor.updateOne(
       { _id: vendorId, "orderList.orderId": orderId },
       {
         $push: {
           "orderList.$.accordian": {
+            sno: nextSno + 1,
             orderedProductName: "",
             orderQty: "",
             stock: "",
@@ -43,17 +63,13 @@ export async function POST(req: NextRequest) {
             isNewRow: true,
           },
         },
-      },
-      { new: true }
+      }
     );
 
+    return NextResponse.json({ message: "Row added" }, { status: 200 });
+  } catch (error: any) {
     return NextResponse.json(
-      { message: "Order Row saved", vendor },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { message: "Add row failed", error },
+      { message: "Add row failed", error: error.message },
       { status: 500 }
     );
   }

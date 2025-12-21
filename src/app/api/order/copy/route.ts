@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 🔍 find original accordion
+    // find original accordion
     const originalOrder = vendor.orderList.find(
       (g: any) => String(g.orderId) === String(orderId)
     );
@@ -33,10 +33,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Order not found" }, { status: 404 });
     }
 
-    // 🆕 new orderId
+    // new orderId
     const newOrderId = new mongoose.Types.ObjectId().toString();
 
-    // 🧬 deep copy rows (accordian)
+    // copy rows
     const copiedAccordian = originalOrder.accordian.map(
       (row: any, index: number) => ({
         sno: index + 1,

@@ -1,4 +1,3 @@
-// app/api/order-row/delete/route.ts
 import connectDB from "@/lib/db";
 import Vendor from "@/models/vendor.model";
 import { NextRequest, NextResponse } from "next/server";

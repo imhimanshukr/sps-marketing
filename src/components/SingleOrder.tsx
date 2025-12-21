@@ -13,7 +13,6 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableRow,
   TextField,
   Autocomplete,
 } from "@mui/material";
@@ -27,6 +26,21 @@ import { SquarePen, SquarePlus, Trash, Trash2 } from "lucide-react";
 import axios from "axios";
 import ConfirmDialog from "./mini-component/ConfirmDialog";
 import CellInput from "./mini-component/CellInput";
+import SortableTableRow from "./mini-component/SortableTableRow";
+
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
 
 interface OrderRow {
   _id?: string;
@@ -57,6 +71,70 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
 
   const orderQtyRefs = useRef<Array<HTMLInputElement | null>>([]);
   const stockRefs = useRef<Array<HTMLInputElement | null>>([]);
+
+  /* DND SENSOR */
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 6 },
+    })
+  );
+
+  /* DRAG END */
+
+  const sortableIds = useMemo(
+    () => rows.filter((r) => !r.isNewRow && !r.isEditable).map((r) => r._id!),
+    [rows]
+  );
+
+  const reorderTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const syncReorderToDB = (updatedRows: OrderRow[]) => {
+    if (reorderTimer.current) clearTimeout(reorderTimer.current);
+
+    reorderTimer.current = setTimeout(async () => {
+      try {
+        const payload = updatedRows
+          .filter((r) => !r.isNewRow && !r.isEditable)
+          .map((r) => ({
+            rowId: r._id,
+          }));
+
+        await axios.patch("/api/order-row/reorder", {
+          vendorId: vendor._id,
+          orderId: order.orderId,
+          rows: payload,
+        });
+      } catch (err) {
+        console.error("Reorder sync failed", err);
+      }
+    }, 300);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const activeRow = rows.find((r) => r._id === active.id);
+    const overRow = rows.find((r) => r._id === over.id);
+
+    if (
+      !activeRow ||
+      !overRow ||
+      activeRow.isNewRow ||
+      activeRow.isEditable ||
+      overRow.isNewRow ||
+      overRow.isEditable
+    ) {
+      return;
+    }
+
+    const oldIndex = rows.indexOf(activeRow);
+    const newIndex = rows.indexOf(overRow);
+
+    const reordered = arrayMove(rows, oldIndex, newIndex);
+    setRows(reordered);
+    syncReorderToDB(reordered);
+  };
 
   const updateRow = useCallback(
     (index: number, field: keyof OrderRow, value: string) => {
@@ -90,7 +168,7 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
     await refreshVendors();
   };
 
-  /* ---------- Update ROW ---------- */
+  /* Update ROW */
   const handleUpdateRow = async (row: OrderRow) => {
     if (!row._id) return;
 
@@ -110,7 +188,7 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
     await refreshVendors();
   };
 
-  /* ---------- DELETE ROW ---------- */
+  /* DELETE ROW */
   const handleDeleteRow = async () => {
     if (selectedRow && !selectedRow._id) return;
 
@@ -127,7 +205,7 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
     setActionType(null);
   };
 
-  // Save Order Name
+  /* Save Order Name */
   const saveOrderName = async () => {
     try {
       await axios.patch("/api/order/edit-name", {
@@ -233,26 +311,21 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
     }
   };
 
-const formattedProductList = useMemo(
-  () =>
-    (vendor?.productList || []).map((str: string) =>
-      str
-        .split(" ")
-        .map(
-          (word) =>
-            word.charAt(0).toUpperCase() +
-            word.slice(1).toLowerCase()
-        )
-        .join(" ")
-    ),
-  [vendor?.productList]
-);
-
+  const formattedProductList = useMemo(
+    () =>
+      (vendor?.productList || []).map((str: string) =>
+        str
+          .split(" ")
+          .map(
+            (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+          )
+          .join(" ")
+      ),
+    [vendor?.productList]
+  );
 
   useEffect(() => {
     if (!order?.accordian) return;
-
-    // shallow copy for safe editing
     setRows(
       order.accordian.map((orderedProduct: any) => ({ ...orderedProduct }))
     );
@@ -344,7 +417,6 @@ const formattedProductList = useMemo(
                 </>
               )}
             </Box>
-            {/* Right */}
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
               <IconButton
                 size="medium"
@@ -380,7 +452,6 @@ const formattedProductList = useMemo(
             overflow: "hidden",
           }}
         >
-          {/* TABLE WRAPPER */}
           <Box
             sx={{
               maxHeight: showAllRows ? "unset" : 240,
@@ -388,226 +459,218 @@ const formattedProductList = useMemo(
               overflowX: "auto",
             }}
           >
-            <Table
-              size="small"
-              sx={{
-                tableLayout: "fixed",
-                width: "100%",
-                minWidth: 600,
-                "& .MuiTableCell-root": {
-                  p: "4px",
-                },
-              }}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
             >
-              <TableHead>
-                <TableRow
-                  sx={{
-                    backgroundColor: "#f5f5f5",
-                    "& th": {
-                      fontWeight: 700,
-                      fontSize: 13,
-                    },
-                  }}
+              <Table
+                size="small"
+                sx={{
+                  tableLayout: "fixed",
+                  width: "100%",
+                  minWidth: 600,
+                  "& .MuiTableCell-root": {
+                    p: "4px",
+                  },
+                }}
+              >
+                <TableHead>
+                  <SortableTableRow id="head" disabled>
+                    <TableCell align="center" sx={{ width: 40 }}>
+                      S.No
+                    </TableCell>
+                    <TableCell sx={{ width: { xs: 120, md: 320 } }}>
+                      Product
+                    </TableCell>
+                    <TableCell
+                      sx={{ width: { xs: 80, md: 120 }, textAlign: "center" }}
+                    >
+                      Stock
+                    </TableCell>
+                    <TableCell
+                      sx={{ width: { xs: 80, md: 120 }, textAlign: "center" }}
+                    >
+                      Order
+                    </TableCell>
+                    <TableCell align="center" sx={{ width: 110 }}>
+                      Action
+                    </TableCell>
+                  </SortableTableRow>
+                </TableHead>
+
+                <SortableContext
+                  items={sortableIds}
+                  strategy={verticalListSortingStrategy}
                 >
-                  <TableCell align="center" sx={{ width: 40 }}>
-                    S.No
-                  </TableCell>
-                  <TableCell sx={{ width: { xs: 120, md: 320 } }}>
-                    Product
-                  </TableCell>
-                  <TableCell
-                    sx={{ width: { xs: 80, md: 120 }, textAlign: "center" }}
-                  >
-                    Order
-                  </TableCell>
-                  <TableCell
-                    sx={{ width: { xs: 80, md: 120 }, textAlign: "center" }}
-                  >
-                    Stock
-                  </TableCell>
-                  <TableCell align="center" sx={{ width: 110 }}>
-                    Action
-                  </TableCell>
-                </TableRow>
-              </TableHead>
+                  <TableBody>
+                    {rows.map((row, index) => (
+                      <SortableTableRow
+                        key={row._id ?? index}
+                        id={row._id ?? `row-${index}`}
+                        disabled={row.isNewRow || row.isEditable}
+                      >
+                        <TableCell align="center">{index + 1}</TableCell>
 
-              <TableBody>
-                {rows.map((row, index) => (
-                  <TableRow
-                    key={row._id ?? index}
-                    sx={{
-                      backgroundColor: selectedRowIds.has(row._id || "")
-                        ? "#2e7d3059"
-                        : "transparent",
-                      "&:hover": {
-                        backgroundColor: selectedRowIds.has(row._id || "")
-                          ? "#2e7d3059"
-                          : "rgba(0,0,0,0.04)",
-                      },
-                    }}
-                  >
-                    {/* S.NO */}
-                    <TableCell align="center">{index + 1}</TableCell>
+                        <TableCell>
+                          <Autocomplete
+                            size="small"
+                            options={formattedProductList}
+                            value={row.orderedProductName || null}
+                            disabled={!row.isEditable}
+                            onChange={(_, val) => {
+                              updateRow(index, "orderedProductName", val || "");
+                              setTimeout(() => {
+                                stockRefs.current[index]?.focus();
+                              }, 0);
+                            }}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                fullWidth
+                                variant="outlined"
+                                sx={{
+                                  "& .MuiInputBase-input": {
+                                    textTransform: "capitalize",
+                                  },
+                                  "& .MuiInputBase-input.Mui-disabled": {
+                                    WebkitTextFillColor: "#000",
+                                    opacity: 0.7,
+                                  },
+                                }}
+                              />
+                            )}
+                          />
+                        </TableCell>
 
-                    {/* PRODUCT */}
-                    <TableCell>
-                      <Autocomplete
-                        size="small"
-                        options={formattedProductList}
-                        value={row.orderedProductName || null}
-                        disabled={!row.isEditable}
-                        onChange={(_, val) => {
-                          updateRow(index, "orderedProductName", val || "");
-                          setTimeout(() => {
-                            orderQtyRefs.current[index]?.focus();
-                          }, 0);
-                        }}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            fullWidth
-                            variant="outlined"
-                            sx={{
-                              "& .MuiInputBase-input": {
-                                textTransform: "capitalize",
-                              },
-                              "& .MuiInputBase-input.Mui-disabled": {
-                                WebkitTextFillColor: "#000",
-                                opacity: 0.7,
-                              },
+                        <TableCell>
+                          <CellInput
+                            value={row.stock}
+                            disabled={!row.isEditable}
+                            ref={(el) => {
+                              stockRefs.current[index] = el;
+                            }}
+                            onCommit={(val) => updateRow(index, "stock", val)}
+                            onEnter={(val) => {
+                              updateRow(index, "stock", val);
+                              orderQtyRefs.current[index]?.focus();
                             }}
                           />
-                        )}
-                      />
-                    </TableCell>
+                        </TableCell>
 
-                    {/* ORDER */}
-                    <TableCell>
-                      <CellInput
-                        value={row.orderQty}
-                        disabled={!row.isEditable}
-                        ref={(el) => {
-                          orderQtyRefs.current[index] = el;
-                        }}
-                        onCommit={(val) => updateRow(index, "orderQty", val)}
-                        onEnter={(val) => {
-                          updateRow(index, "orderQty", val);
-                          stockRefs.current[index]?.focus();
-                        }}
-                      />
-                    </TableCell>
+                        <TableCell>
+                          <CellInput
+                            value={row.orderQty}
+                            disabled={!row.isEditable}
+                            ref={(el) => {
+                              orderQtyRefs.current[index] = el;
+                            }}
+                            onCommit={(val) =>
+                              updateRow(index, "orderQty", val)
+                            }
+                            onEnter={(val) => {
+                              const updatedRow = {
+                                ...row,
+                                orderQty: val,
+                              };
 
-                    {/* STOCK */}
-                    <TableCell>
-                      <CellInput
-                        value={row.stock}
-                        disabled={!row.isEditable}
-                        ref={(el) => {
-                          stockRefs.current[index] = el;
-                        }}
-                        onCommit={(val) => updateRow(index, "stock", val)}
-                        onEnter={(val) => {
-                          const updatedRow = {
-                            ...row,
-                            stock: val,
-                          };
+                              if (row.isNewRow) {
+                                handleSaveRow(updatedRow);
+                              } else {
+                                handleUpdateRow(updatedRow);
+                              }
+                            }}
+                          />
+                        </TableCell>
 
-                          if (row.isNewRow) {
-                            handleSaveRow(updatedRow);
-                          } else {
-                            handleUpdateRow(updatedRow);
-                          }
-                        }}
-                      />
-                    </TableCell>
-
-                    {/* ACTION */}
-                    <TableCell align="center">
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "center",
-                          gap: 0.5,
-                        }}
-                      >
-                        {/* ADD */}
-                        {row.isNewRow && row.isEditable && (
-                          <IconButton
-                            size="small"
-                            sx={{ color: "#2e7d32" }}
-                            onClick={() => handleSaveRow(row)}
-                          >
-                            <SquarePlus size={18} />
-                          </IconButton>
-                        )}
-
-                        {/* EDIT */}
-                        {!row.isNewRow && !row.isEditable && (
-                          <IconButton
-                            size="small"
-                            sx={{ color: "#1565c0" }}
-                            onClick={() => handleEditToggle(index)}
-                          >
-                            <SquarePen size={18} />
-                          </IconButton>
-                        )}
-
-                        {/* UPDATE */}
-                        {!row.isNewRow && row.isEditable && (
-                          <IconButton
-                            size="small"
-                            sx={{ color: "#2e7d32" }}
-                            onClick={() => handleUpdateRow(row)}
-                          >
-                            <SquarePlus size={18} />
-                          </IconButton>
-                        )}
-
-                        {/* DELETE */}
-                        {order?.accordian.length > 1 &&
-                          !row.isNewRow &&
-                          !row.isEditable && (
-                            <IconButton
-                              size="small"
-                              sx={{ color: "#c62828" }}
-                              onClick={() => {
-                                setSelectedRow(row);
-                                setActionType("deleteRow");
-                              }}
-                            >
-                              <Trash size={18} />
-                            </IconButton>
-                          )}
-                        {/* CHECKBOX */}
-                        {row._id && !row.isNewRow && !row.isEditable && (
-                          <IconButton
-                            size="small"
-                            onClick={() => toggleRowSelect(row._id)}
+                        <TableCell align="center">
+                          <Box
                             sx={{
-                              color: selectedRowIds.has(row._id)
-                                ? "#2e7d32"
-                                : "#37474f",
-                              "&:hover": {
-                                color: selectedRowIds.has(row._id)
-                                  ? "#1b5e20"
-                                  : "#000",
-                                backgroundColor: "rgba(0,0,0,0.06)",
-                              },
+                              display: "flex",
+                              justifyContent: "center",
+                              gap: 0.5,
                             }}
                           >
-                            {selectedRowIds.has(row._id) ? (
-                              <CheckBoxIcon fontSize="small" />
-                            ) : (
-                              <CheckBoxOutlineBlankIcon fontSize="small" />
+                            {/* ADD */}
+                            {row.isNewRow && row.isEditable && (
+                              <IconButton
+                                size="small"
+                                sx={{ color: "#2e7d32" }}
+                                onClick={() => handleSaveRow(row)}
+                              >
+                                <SquarePlus size={18} />
+                              </IconButton>
                             )}
-                          </IconButton>
-                        )}
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+
+                            {/* EDIT */}
+                            {!row.isNewRow && !row.isEditable && (
+                              <IconButton
+                                size="small"
+                                sx={{ color: "#1565c0" }}
+                                onClick={() => handleEditToggle(index)}
+                              >
+                                <SquarePen size={22} />
+                              </IconButton>
+                            )}
+
+                            {/* UPDATE */}
+                            {!row.isNewRow && row.isEditable && (
+                              <IconButton
+                                size="small"
+                                sx={{ color: "#2e7d32" }}
+                                onClick={() => handleUpdateRow(row)}
+                              >
+                                <SquarePlus size={22} />
+                              </IconButton>
+                            )}
+
+                            {/* DELETE */}
+                            {order?.accordian.length > 1 &&
+                              !row.isNewRow &&
+                              !row.isEditable && (
+                                <IconButton
+                                  size="small"
+                                  sx={{ color: "#c62828" }}
+                                  onClick={() => {
+                                    setSelectedRow(row);
+                                    setActionType("deleteRow");
+                                  }}
+                                >
+                                  <Trash size={22} />
+                                </IconButton>
+                              )}
+                            {/* CHECKBOX */}
+                            {row._id && !row.isNewRow && !row.isEditable && (
+                              <IconButton
+                                size="small"
+                                onClick={() => toggleRowSelect(row._id)}
+                                sx={{
+                                  color: selectedRowIds.has(row._id)
+                                    ? "#2e7d32"
+                                    : "#37474f",
+                                  "&:hover": {
+                                    color: selectedRowIds.has(row._id)
+                                      ? "#1b5e20"
+                                      : "#000",
+                                    backgroundColor: "rgba(0,0,0,0.06)",
+                                  },
+                                }}
+                              >
+                                {selectedRowIds.has(row._id) ? (
+                                  <CheckBoxIcon fontSize="medium" />
+                                ) : (
+                                  <CheckBoxOutlineBlankIcon fontSize="medium" />
+                                )}
+                              </IconButton>
+                            )}
+                          </Box>
+                        </TableCell>
+                      </SortableTableRow>
+                    ))}
+                  </TableBody>
+                </SortableContext>
+              </Table>
+            </DndContext>
           </Box>
 
           {/* FOOTER */}

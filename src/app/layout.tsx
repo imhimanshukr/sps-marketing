@@ -5,7 +5,7 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "SPS Mega Mart - Apke Zaruraton Ka Sathi ...",
+  title: "SPS Marketing",
   description: "Best place to purchage groceries.",
   icons: {
     icon: "/favicon.png",
