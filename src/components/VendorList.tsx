@@ -164,7 +164,7 @@ export default function VendorList({
       <Box sx={{ height: "100dvh", display: "flex", flexDirection: "column" }}>
         {/* ===== VENDOR GRID ===== */}
         {loading || fetching ? (
-          <VendorGridSkeleton count={10} />
+          <VendorGridSkeleton count={9} />
         ) : vendorsData?.length ? (
           <Box
             sx={{
