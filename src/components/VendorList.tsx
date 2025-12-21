@@ -147,7 +147,7 @@ export default function VendorList({
   return (
     <>
       <Loader open={loading} />
-      <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <Box sx={{ height: "100dvh", display: "flex", flexDirection: "column" }}>
         {/* ===== VENDOR GRID ===== */}
         {vendorsData?.length ? (
           <Box
@@ -158,18 +158,14 @@ export default function VendorList({
               display: "grid",
               gap: { xs: "6px", md: "12px" },
               gridTemplateColumns: {
-                xs: "repeat(3, minmax(110px, 1fr))",
+                xs: "repeat(3, minmax(108px, 1fr))",
                 sm: "repeat(4, minmax(140px, 1fr))",
                 md: "repeat(5, minmax(160px, 1fr))",
                 lg: "repeat(6, minmax(180px, 1fr))",
               },
               mt: 2,
-              pb: "140px",
-              overscrollBehavior: "none",
-              scrollbarWidth: "none",
-              "&::-webkit-scrollbar": {
-                display: "none",
-              },
+              pb: "160px",
+              overscrollBehavior: "contain",
             }}
           >
             {vendorsData.map((vendor) => (

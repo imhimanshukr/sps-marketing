@@ -113,7 +113,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   // ⏳ Session settings
   session: {
     strategy: "jwt", // JWT based session
-    maxAge: 10 * 24 * 60 * 60 * 1000, // 10 din tak session valid
+    maxAge: 10 * 24 * 60 * 60,
   },
 
   // 🔑 Secret key
