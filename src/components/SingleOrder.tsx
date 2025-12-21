@@ -35,6 +35,7 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  TouchSensor,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -76,11 +77,21 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
 
   /* DND SENSOR */
   const sensors = useSensors(
+    // DESKTOP
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 4 },
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+
+    // MOBILE
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
     })
   );
-
   /* DRAG END */
 
   const sortableIds = useMemo(
@@ -592,7 +603,7 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
                                   "& .MuiInputBase-input.Mui-disabled": {
                                     WebkitTextFillColor: "#000",
                                     opacity: 0.7,
-                                    pointerEvents: "none"
+                                    pointerEvents: "none",
                                   },
                                 }}
                               />
