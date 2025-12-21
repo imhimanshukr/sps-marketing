@@ -586,21 +586,13 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
                                 fullWidth
                                 variant="outlined"
                                 sx={{
-                                  "& input": {
-                                    pointerEvents: row.isEditable
-                                      ? "auto"
-                                      : "none",
-                                    userSelect: row.isEditable
-                                      ? "text"
-                                      : "none",
-                                    textTransform: "capitalize",
-                                  },
                                   "& .MuiInputBase-input": {
                                     textTransform: "capitalize",
                                   },
                                   "& .MuiInputBase-input.Mui-disabled": {
                                     WebkitTextFillColor: "#000",
                                     opacity: 0.7,
+                                    pointerEvents: "none"
                                   },
                                 }}
                               />

@@ -45,14 +45,10 @@ const CellInput = memo(
           }
         }}
         sx={{
-          "& input": {
-            pointerEvents: disabled ? "none" : "auto",
-            userSelect: disabled ? "none" : "text",
-            textAlign: "center",
-          },
           "& .MuiInputBase-input.Mui-disabled": {
             WebkitTextFillColor: "#000",
             opacity: 0.7,
+            pointerEvents: "none",
           },
         }}
       />
