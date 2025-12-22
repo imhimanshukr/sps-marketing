@@ -130,6 +130,8 @@ export default function Navbar({
                   backgroundColor: "#B71C1C",
                   mx: 0.5,
                   "&:hover": { backgroundColor: "#9a1515" },
+                  padding: { md: "6px 14px", xs: "4px 6px" },
+                  fontSize: { md: "0.875rem", xs: "12px" },
                 }}
                 onClick={() => setDeleteAllDataModal(true)}
               >

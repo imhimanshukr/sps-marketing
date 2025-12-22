@@ -31,27 +31,24 @@ export async function GET(req: NextRequest) {
 
       // sory accordian by sno
       vendor.orderList?.forEach((order: any) => {
-        order.accordian?.sort(
-          (a: any, b: any) => (a.sno ?? 0) - (b.sno ?? 0)
-        );
+        order.accordian?.sort((a: any, b: any) => (a.sno ?? 0) - (b.sno ?? 0));
       });
 
       return NextResponse.json({ vendor }, { status: 200 });
     }
 
-    // ALL VENDORS 
+    // ALL VENDORS
     const vendors = await Vendor.find({
       userId: session.user.id,
     })
-      .sort({ createdAt: -1 })
+      .collation({ locale: "en", strength: 2 })
+      .sort({ vendorName: 1 })
       .lean();
 
     // SORT ALL ACCORDIANS
     vendors.forEach((vendor: any) => {
       vendor.orderList?.forEach((order: any) => {
-        order.accordian?.sort(
-          (a: any, b: any) => (a.sno ?? 0) - (b.sno ?? 0)
-        );
+        order.accordian?.sort((a: any, b: any) => (a.sno ?? 0) - (b.sno ?? 0));
       });
     });
 

@@ -161,7 +161,7 @@ export default function VendorList({
 
   return (
     <>
-      <Box sx={{ height: "100dvh", display: "flex", flexDirection: "column" }}>
+      <Box sx={{ height: "80dvh", display: "flex", flexDirection: "column" }}>
         {/* ===== VENDOR GRID ===== */}
         {loading || fetching ? (
           <VendorGridSkeleton count={9} />
@@ -169,16 +169,22 @@ export default function VendorList({
           <Box
             sx={{
               flex: 1,
+              maxHeight: "calc(100dvh - 96px)",
               overflowY: "auto",
               px: { xs: 1.5, sm: 3 },
               display: "grid",
               gap: { xs: "6px", md: "12px" },
               gridTemplateColumns: {
-                xs: "repeat(3, minmax(108px, 1fr))",
-                sm: "repeat(4, minmax(140px, 1fr))",
-                md: "repeat(5, minmax(160px, 1fr))",
-                lg: "repeat(6, minmax(180px, 1fr))",
+                // xs: "repeat(3, minmax(108px, 1fr))",
+                // sm: "repeat(4, minmax(140px, 1fr))",
+                // md: "repeat(5, minmax(160px, 1fr))",
+                // lg: "repeat(6, minmax(180px, 1fr))",
+                xs: "repeat(3, 1fr)",
+                sm: "repeat(4, 1fr)",
+                md: "repeat(5, 1fr)",
+                lg: "repeat(6, 1fr)",
               },
+              alignContent: "start",
               mt: 2,
               pb: "160px",
               overscrollBehavior: "contain",
