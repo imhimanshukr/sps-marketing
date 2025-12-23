@@ -367,13 +367,27 @@ const SingleOrderAccordion = ({
 
       const blob = new Blob([res.data], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
-      const pdfWindow = window.open(url, "_blank");
-      if (!pdfWindow) {
-        alert("Popup blocked");
-      }
+
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = url;
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        if (iframe.contentWindow) {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print(); 
+        }
+        
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url);
+        }, 1000);
+      };
+
     } catch (error) {
-      console.log(error);
-      setLoading(false);
+      console.error("Print Error:", error);
+      alert("Print Error Bro!");
     } finally {
       setLoading(false);
     }
