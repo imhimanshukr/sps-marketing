@@ -14,12 +14,10 @@ type SortableRowRenderProps = {
 const SortableTableRow = ({
   id,
   disabled,
-  isMobile = false,
   children,
 }: {
   id: string;
   disabled?: boolean;
-  isMobile?: boolean;
   children:
     | React.ReactNode
     | ((props: SortableRowRenderProps) => React.ReactNode);
@@ -38,22 +36,16 @@ const SortableTableRow = ({
     transform: CSS.Transform.toString(transform),
     transition,
     background: isDragging ? "#f5f5f5" : "inherit",
-    cursor: isDragging
-      ? "grabbing"
-      : !isMobile && !disabled
-      ? "grab"
-      : "default",
   };
 
   return (
-    <TableRow
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...(!isMobile && !disabled ? listeners : {})}
-    >
+    <TableRow ref={setNodeRef} style={style} {...attributes}>
       {typeof children === "function"
-        ? children({ setActivatorNodeRef, listeners, disabled })
+        ? children({
+            setActivatorNodeRef,
+            listeners,
+            disabled,
+          })
         : children}
     </TableRow>
   );

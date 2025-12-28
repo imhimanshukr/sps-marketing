@@ -83,23 +83,18 @@ const SingleOrderAccordion = ({
   const orderQtyRefs = useRef<Array<HTMLInputElement | null>>([]);
   const stockRefs = useRef<Array<HTMLInputElement | null>>([]);
 
-  const isMobile = useMediaQuery("(max-width:768px)");
-
   /* DND SENSOR */
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: isMobile ? undefined : { distance: 1 },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 150,
-        tolerance: 8,
-      },
+      activationConstraint: { distance: 8 },
     })
   );
 
   const sortableIds = useMemo(
-    () => rows.filter((r) => !r.isNewRow && !r.isEditable).map((r) => r._id!),
+    () =>
+      rows
+        .filter((r) => !r.isNewRow && !r.isEditable && r._id)
+        .map((r) => r._id as string),
     [rows]
   );
 
@@ -367,27 +362,13 @@ const SingleOrderAccordion = ({
 
       const blob = new Blob([res.data], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
-
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.src = url;
-      document.body.appendChild(iframe);
-
-      iframe.onload = () => {
-        if (iframe.contentWindow) {
-          iframe.contentWindow.focus();
-          iframe.contentWindow.print(); 
-        }
-        
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(url);
-        }, 1000);
-      };
-
+      const pdfWindow = window.open(url, "_blank");
+      if (!pdfWindow) {
+        alert("Popup blocked");
+      }
     } catch (error) {
-      console.error("Print Error:", error);
-      alert("Print Error Bro!");
+      console.log(error);
+      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -560,27 +541,25 @@ const SingleOrderAccordion = ({
                 }}
               >
                 <TableHead>
-                  <SortableTableRow id="head" disabled>
-                    <TableCell align="center" sx={{ width: 40 }}>
-                      S.No
-                    </TableCell>
-                    <TableCell sx={{ width: { xs: 120, md: 320 } }}>
-                      Product
-                    </TableCell>
-                    <TableCell
-                      sx={{ width: { xs: 80, md: 120 }, textAlign: "center" }}
-                    >
-                      Stock
-                    </TableCell>
-                    <TableCell
-                      sx={{ width: { xs: 80, md: 120 }, textAlign: "center" }}
-                    >
-                      Order
-                    </TableCell>
-                    <TableCell align="center" sx={{ width: 110 }}>
-                      Action
-                    </TableCell>
-                  </SortableTableRow>
+                  <TableCell align="center" sx={{ width: 40 }}>
+                    S.No
+                  </TableCell>
+                  <TableCell sx={{ width: { xs: 120, md: 320 } }}>
+                    Product
+                  </TableCell>
+                  <TableCell
+                    sx={{ width: { xs: 80, md: 120 }, textAlign: "center" }}
+                  >
+                    Stock
+                  </TableCell>
+                  <TableCell
+                    sx={{ width: { xs: 80, md: 120 }, textAlign: "center" }}
+                  >
+                    Order
+                  </TableCell>
+                  <TableCell align="center" sx={{ width: 110 }}>
+                    Action
+                  </TableCell>
                 </TableHead>
 
                 <SortableContext
@@ -596,7 +575,6 @@ const SingleOrderAccordion = ({
                           key={row._id ?? index}
                           id={row._id ?? `row-${index}`}
                           disabled={row.isNewRow || row.isEditable}
-                          isMobile={isMobile}
                         >
                           {({ setActivatorNodeRef, listeners, disabled }) => (
                             <>
@@ -763,25 +741,30 @@ const SingleOrderAccordion = ({
                                       </IconButton>
                                     )}
                                   {/* Drag */}
-                                  {isMobile && !disabled && (
+                                  {!disabled && (
                                     <Box
                                       ref={setActivatorNodeRef}
                                       {...listeners}
+                                      onClick={(e) => e.stopPropagation()}
                                       sx={{
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
-                                        width: 44,
-                                        height: 44,
+                                        width: 36,
+                                        height: 36,
                                         ml: 0.5,
-                                        borderRadius: "8px",
+                                        borderRadius: "6px",
                                         backgroundColor: "rgba(0,0,0,0.08)",
+                                        cursor: "grab",
                                         touchAction: "none",
                                         WebkitUserSelect: "none",
                                         userSelect: "none",
+                                        "&:active": {
+                                          cursor: "grabbing",
+                                        },
                                       }}
                                     >
-                                      <DragHandleIcon sx={{ fontSize: 28 }} />
+                                      <DragHandleIcon sx={{ fontSize: 22 }} />
                                     </Box>
                                   )}
                                 </Box>

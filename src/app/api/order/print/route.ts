@@ -93,22 +93,20 @@ export async function POST(req: NextRequest) {
         font: "helvetica",
         fontSize: 9,
         cellPadding: 0.8,
-        // सुनिश्चित करें कि यहाँ वैल्यू [0, 0, 0] लिखी हुई है
-        textColor: [0, 0, 0], 
-        lineColor: [0, 0, 0], 
-        lineWidth: 0.1 // यहाँ कॉमा हटा दिया है
+        textColor: [0, 0, 0],
+        lineColor: [0, 0, 0],
+        lineWidth: 0.1,
       },
       headStyles: {
-        // सुनिश्चित करें कि यहाँ वैल्यू [255, 255, 255] लिखी हुई है
-        fillColor: [255, 255, 255], 
+        fillColor: [255, 255, 255],
         textColor: [0, 0, 0],
         fontStyle: "bold",
-        lineWidth: 0.1 // यहाँ कॉमा हटा दिया है
+        lineWidth: 0.1,
       },
       columnStyles: {
         0: { cellWidth: 7, halign: "center" },
         1: { cellWidth: "auto" },
-        2: { cellWidth: 12, halign: "center" } // यहाँ कॉमा हटा दिया है
+        2: { cellWidth: 15, halign: "center" },
       },
     });
 
@@ -127,7 +125,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse(pdfBuffer, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="bill.pdf"` // यहाँ कॉमा हटा दिया है
+        "Content-Disposition": `inline; filename="bill.pdf"`,
       },
     });
   } catch (err) {
