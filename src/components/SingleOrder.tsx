@@ -116,6 +116,7 @@ const SingleOrderAccordion = ({
           orderId: order.orderId,
           rows: payload,
         });
+        await refreshVendors();
       } catch (err) {
         console.error("Reorder sync failed", err);
       }
