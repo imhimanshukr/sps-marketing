@@ -234,7 +234,8 @@ export default function VendorList({
         {/* ===== ADD / EDIT DIALOG ===== */}
         <Dialog
           open={open}
-          onClose={resetDialog}
+          onClose={() => {}}
+          disableEscapeKeyDown
           fullWidth
           maxWidth="sm"
           TransitionProps={{
