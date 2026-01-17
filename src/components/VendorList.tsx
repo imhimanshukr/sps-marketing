@@ -175,10 +175,6 @@ export default function VendorList({
               display: "grid",
               gap: { xs: "6px", md: "12px" },
               gridTemplateColumns: {
-                // xs: "repeat(3, minmax(108px, 1fr))",
-                // sm: "repeat(4, minmax(140px, 1fr))",
-                // md: "repeat(5, minmax(160px, 1fr))",
-                // lg: "repeat(6, minmax(180px, 1fr))",
                 xs: "repeat(3, 1fr)",
                 sm: "repeat(4, 1fr)",
                 md: "repeat(5, 1fr)",
@@ -205,6 +201,7 @@ export default function VendorList({
                   key={vendor._id}
                   vendor={vendor}
                   onEditVendor={openEditDialog}
+                  refreshVendors={refreshVendors}
                 />
               </motion.div>
             ))}
