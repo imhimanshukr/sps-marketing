@@ -4,10 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { auth } from "../../../../../auth";
 
-/* =======================
-   Types (same as schema)
-======================= */
-
 interface IOrderRow {
   sno: number;
   orderedProductName: string;
