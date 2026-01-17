@@ -15,7 +15,11 @@ interface IProps {
   refreshVendors: () => void;
 }
 
-export default function ProductCard({ vendor, onEditVendor, refreshVendors }: IProps) {
+export default function ProductCard({
+  vendor,
+  onEditVendor,
+  refreshVendors,
+}: IProps) {
   const router = useRouter();
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [openCopy, setOpenCopy] = useState<boolean>(false);
@@ -36,7 +40,7 @@ export default function ProductCard({ vendor, onEditVendor, refreshVendors }: IP
 
   const handleCopyVendor = async () => {
     try {
-      await axios.post('api/vendor/copy', {vendorId: vendor._id});
+      await axios.post("api/vendor/copy", { vendorId: vendor._id });
       await refreshVendors();
     } catch (error) {
       console.log(error);
@@ -87,7 +91,7 @@ export default function ProductCard({ vendor, onEditVendor, refreshVendors }: IP
             },
           }}
         >
-          <ContentCopyIcon size={18} />
+          <ContentCopyIcon fontSize="small" />
         </IconButton>
         <IconButton
           size="small"
