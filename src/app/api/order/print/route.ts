@@ -17,10 +17,7 @@ export async function POST(req: NextRequest) {
 
     const vendor: any = await Vendor.findById(vendorId).lean();
     if (!vendor) {
-      return NextResponse.json(
-        { message: "Vendor not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "Vendor not found" }, { status: 404 });
     }
 
     const order = vendor.orderList.find((o: any) => o.orderId === orderId);
@@ -28,7 +25,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Order not found" }, { status: 404 });
     }
 
-    /* ================= ROWS DATA ================= */
+    /* ================= ROWS ================= */
     const rows = order.accordian
       .filter(
         (r: any) =>
@@ -41,21 +38,23 @@ export async function POST(req: NextRequest) {
         String(r.orderQty || ""),
       ]);
 
-    /* ================= MINIMAL HEIGHT CALCULATION ================= */
-    const estimatedHeight = 15 + rows.length * 6.5 + 8;
+    /* ================= PDF CONFIG ================= */
     const pageWidth = 72;
+    const BASE_PAGE_HEIGHT = 280;
 
-    /* ================= PDF CONFIGURATION ================= */
     const pdf = new jsPDF({
       orientation: "portrait",
       unit: "mm",
-      format: [pageWidth, estimatedHeight],
+      format: [pageWidth, BASE_PAGE_HEIGHT],
       hotfixes: ["px_scaling"],
     });
 
-    const actualWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const pageWidthActual = pdf.internal.pageSize.getWidth();
 
-    /* ================= LOGO ================= */
+    /* ================= HEADER ================= */
+    let currentY = 6;
+
     try {
       const logoPath = path.join(process.cwd(), "public/logo.png");
       const logoImg = await loadImage(logoPath);
@@ -63,32 +62,36 @@ export async function POST(req: NextRequest) {
       const ctx = canvas.getContext("2d");
       ctx.drawImage(logoImg, 0, 0);
       const logoBase64 = canvas.toDataURL("image/png");
-      pdf.addImage(logoBase64, "PNG", 4, 1, 12, 12);
-    } catch (e) {
-      console.log("Logo not found, skipping...");
-    }
 
-    /* ================= HEADER ================= */
+      pdf.addImage(logoBase64, "PNG", 4, currentY, 12, 12);
+    } catch {}
+
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(12);
-    pdf.text(vendor.vendorName.toUpperCase(), actualWidth / 2, 6, {
+    pdf.text(vendor.vendorName.toUpperCase(), pageWidthActual / 2, currentY + 6, {
       align: "center",
     });
 
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(9);
-    pdf.text("7979769612, 8863811908", actualWidth / 2, 10, {
+    pdf.text("7979769612, 8863811908", pageWidthActual / 2, currentY + 12, {
       align: "center",
     });
-    pdf.text("Thathopur, Baheri", actualWidth / 2, 14, { align: "center" });
+    pdf.text("Thathopur, Baheri", pageWidthActual / 2, currentY + 16, {
+      align: "center",
+    });
+
+    currentY += 22;
 
     /* ================= TABLE ================= */
     autoTable(pdf, {
-      startY: 18,
+      startY: currentY,
       head: [["S.N", "Product", "Qty"]],
       body: rows,
       theme: "plain",
+
       margin: { left: 2, right: 2 },
+
       styles: {
         font: "helvetica",
         fontSize: 9,
@@ -97,27 +100,39 @@ export async function POST(req: NextRequest) {
         lineColor: [0, 0, 0],
         lineWidth: 0.1,
       },
+
       headStyles: {
         fillColor: [255, 255, 255],
         textColor: [0, 0, 0],
         fontStyle: "bold",
         lineWidth: 0.1,
       },
+
       columnStyles: {
         0: { cellWidth: 7, halign: "center" },
         1: { cellWidth: "auto" },
-        2: { cellWidth: 15, halign: "center" },
+        2: { cellWidth: 14, halign: "center" },
       },
+
+      pageBreak: "auto",
     });
 
-    /* ================= FOOTER (COMPACT) ================= */
-    const finalY = (pdf as any).lastAutoTable.finalY + 6;
+    /* ================= FOOTER (LAST PAGE ONLY) ================= */
+    const lastTableY = (pdf as any).lastAutoTable.finalY;
+    const footerY = lastTableY + 6;
+
+    if (footerY + 6 > pageHeight) {
+      pdf.addPage();
+    }
 
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(9);
-    pdf.text("SPS - Aapke Zaruraton Ka Saathi", actualWidth / 2, finalY, {
-      align: "center",
-    });
+    pdf.text(
+      "SPS - Aapke Zaruraton Ka Saathi",
+      pageWidthActual / 2,
+      footerY,
+      { align: "center" }
+    );
 
     /* ================= RESPONSE ================= */
     const pdfBuffer = Buffer.from(pdf.output("arraybuffer"));
